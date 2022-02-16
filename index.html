@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hello MRZ Reader & Scanner</title>
+    <script src="util.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.0/dist/dlr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-camera-enhancer@2.1.0/dist/dce.js"></script>
+</head>
+
+<body>
+    <span id='loading-status' style='font-size:x-large'>Loading Library...</span>
+    <input type="file" id="file" accept="image/*" /><button id="scanner">MRZ Scanner</button>
+    <div>
+        <a id='result'></a>
+    </div>
+    <div id="enhancerUIContainer" style="height: 100vh;" hidden="true"></div>
+    <script>
+        var enhancer = null;
+        var recognizer = null;
+        let div = document.createElement("div");
+        div.style.position = "absolute";
+        div.style.left = "20px";
+        div.style.top = "20%";
+        div.style.color = "white";
+
+        Dynamsoft.DLR.LabelRecognizer.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIzNDgxMCJ9");
+        Dynamsoft.DLR.LabelRecognizer.createInstance({
+            runtimeSettings: "passportMRZ"
+        }).then(function (obj) {
+            console.log("recognizer created");
+            recognizer = obj;
+            document.getElementById('loading-status').hidden = true;
+
+            (async () => {
+                enhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance();
+                document.getElementById("enhancerUIContainer").appendChild(enhancer.getUIElement());
+                document.getElementById("enhancerUIContainer").appendChild(div);
+            })();
+        });
+
+        document.getElementById("file").addEventListener("change", function () {
+            document.getElementById('enhancerUIContainer').hidden = true;
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('result').hidden = false;
+            let file = this.files[0];
+            if (recognizer) {
+                recognizer.recognize(file).then(function (results) {
+                    for (let result of results) {
+                        if (result.lineResults.length == 2) {
+                            let lines = result.lineResults;
+                            let line1 = lines[0].text;
+                            let line2 = lines[1].text;
+                            console.log(line1);
+                            console.log(line2);
+                            document.getElementById('result').innerHTML = extractMRZInfo(line1, line2);
+                        }
+                    }
+                });
+            }
+        });
+
+        document.getElementById("scanner").onclick = function () {
+            document.getElementById('enhancerUIContainer').hidden ^= true;
+
+            if (document.getElementById('enhancerUIContainer').hidden) {
+                document.getElementById('result').hidden = false;
+            } else {
+                document.getElementById('result').hidden = true;
+                if (!enhancer.isOpen()) {
+                    (async () => {
+                        await enhancer.open(true);
+                        scanMRZ();
+                    })();
+                }
+
+            }
+
+        }
+
+        function scanMRZ() {
+
+            let frame = enhancer.getFrame();
+            if (recognizer) {
+                recognizer.recognize(frame.canvas).then(function (results) {
+                    div.innerHTML = '';
+                    for (let result of results) {
+                        if (result.lineResults.length == 2) {
+                            let lines = result.lineResults;
+                            let line1 = lines[0].text;
+                            let line2 = lines[1].text;
+                            console.log(line1);
+                            console.log(line2);
+                            div.innerHTML = extractMRZInfo(line1, line2);
+                        }
+                    }
+
+                    scanMRZ();
+                });
+            }
+        }
+
+    </script>
+</body>
+
+</html>
