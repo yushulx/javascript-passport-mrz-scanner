@@ -3,6 +3,17 @@ The sample demonstrates how to use [Dynamsoft Camera Enhancer](https://www.dynam
 
 ![JavaScript passport MRZ reader and scanner](https://www.dynamsoft.com/codepool/img/2022/02/passport-javascript-mrz-scanner.png)
 
+## SDK Activation
+1. Apply for a [trial license key](https://www.dynamsoft.com/customer/license/trialLicense?product=dlr) of Dynamsoft Label Recognizer.
+
+  ![license key application for Dynamsoft Label Recognizer](https://www.dynamsoft.com/codepool/img/2022/02/dynamsoft-label-recognizer-trial-license-key.png)
+
+2. Update the JavaScript code:
+
+    ```javascript
+    Dynamsoft.DLR.LabelRecognizer.initLicense("LICENSE-KEY");
+    ```
+
 ## Online Demo
 [https://yushulx.github.io/javascript-passport-mrz-scanner/](https://yushulx.github.io/javascript-passport-mrz-scanner/)
 
