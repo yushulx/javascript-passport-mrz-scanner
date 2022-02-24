@@ -4,7 +4,7 @@
 <head>
     <title>Hello MRZ Reader</title>
     <script src="util.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.0/dist/dlr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.1/dist/dlr.js"></script>
 </head>
 
 <body>
@@ -21,8 +21,11 @@
         }).then(function (obj) {
             console.log("recognizer created");
             recognizer = obj;
-            document.getElementById('loading-status').hidden = true;
         });
+        Dynamsoft.DLR.LabelRecognizer.onResourcesLoaded = (resourcesPath) => {
+            console.log(resourcesPath + " is loaded.")
+            document.getElementById('loading-status').hidden = true;
+        };
 
         document.getElementById("file").addEventListener("change", function () {
             document.getElementById('result').innerHTML = '';
