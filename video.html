@@ -4,7 +4,7 @@
 <head>
     <title>Hello MRZ Scanner</title>
     <script src="util.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.0/dist/dlr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.1/dist/dlr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dynamsoft-camera-enhancer@2.1.0/dist/dce.js"></script>
 </head>
 
@@ -26,6 +26,11 @@
         }).then(function (obj) {
             console.log("recognizer created");
             recognizer = obj;
+        });
+
+        Dynamsoft.DLR.LabelRecognizer.onResourcesLoadStarted = (resourcesPath) => { console.log(resourcesPath + " is loading.") };
+        Dynamsoft.DLR.LabelRecognizer.onResourcesLoaded = (resourcesPath) => {
+            console.log(resourcesPath + " is loaded.")
             document.getElementById('loading-status').hidden = true;
 
             (async () => {
@@ -35,27 +40,32 @@
                 await enhancer.open(true);
                 scanMRZ();
             })();
-        });
+        };
 
         function scanMRZ() {
-            
+
             let frame = enhancer.getFrame();
             if (recognizer) {
-                recognizer.recognize(frame.canvas).then(function (results) {
-                    div.innerHTML = '';
-                    for (let result of results) {
-                        if (result.lineResults.length == 2) {
-                            let lines = result.lineResults;
-                            let line1 = lines[0].text;
-                            let line2 = lines[1].text;
-                            console.log(line1);
-                            console.log(line2);
-                            div.innerHTML = extractMRZInfo(line1, line2);
+                if (frame.canvas.width != 0) {
+                    recognizer.recognize(frame.canvas).then(function (results) {
+                        div.innerHTML = '';
+                        for (let result of results) {
+                            if (result.lineResults.length == 2) {
+                                let lines = result.lineResults;
+                                let line1 = lines[0].text;
+                                let line2 = lines[1].text;
+                                console.log(line1);
+                                console.log(line2);
+                                div.innerHTML = extractMRZInfo(line1, line2);
+                            }
                         }
-                    }
 
-                    scanMRZ();
-                });
+                        scanMRZ();
+                    });
+                }
+                else {
+                    setTimeout(scanMRZ, 10);
+                }
             }
         }
     </script>
