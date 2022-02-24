@@ -21,3 +21,5 @@ The sample demonstrates how to use [Dynamsoft Camera Enhancer](https://www.dynam
 - [https://www.dynamsoft.com/camera-enhancer/docs/programming/javascript/api-reference/?ver=latest](https://www.dynamsoft.com/camera-enhancer/docs/programming/javascript/api-reference/?ver=latest)
 - [https://www.dynamsoft.com/label-recognition/programming/javascript/api-reference/?ver=latest](https://www.dynamsoft.com/label-recognition/programming/javascript/api-reference/?ver=latest)
 
+## Blog
+[Making Web Passport MRZ Reader and Scanner in HTML5 and JavaScript](https://www.dynamsoft.com/codepool/web-javascript-passport-mrz-scanner.html)
