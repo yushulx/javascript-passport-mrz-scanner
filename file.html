@@ -4,7 +4,7 @@
 <head>
     <title>Hello MRZ Reader</title>
     <script src="util.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.1/dist/dlr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.4/dist/dlr.js"></script>
 </head>
 
 <body>
@@ -15,7 +15,7 @@
     </div>
     <script>
         var recognizer = null;
-        Dynamsoft.DLR.LabelRecognizer.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIzNDgxMCJ9");
+        Dynamsoft.DLR.LabelRecognizer.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==");
         Dynamsoft.DLR.LabelRecognizer.createInstance({
             runtimeSettings: "passportMRZ"
         }).then(function (obj) {
