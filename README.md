@@ -11,7 +11,7 @@ The sample demonstrates how to use [Dynamsoft Camera Enhancer](https://www.dynam
 2. Update the JavaScript code:
 
     ```javascript
-    Dynamsoft.DLR.LabelRecognizer.initLicense("LICENSE-KEY");
+    Dynamsoft.DLR.LabelRecognizer.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==");
     ```
 
 ## Online Demo
