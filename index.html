@@ -6,6 +6,28 @@
     <script src="util.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.10/dist/dlr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dynamsoft-camera-enhancer@2.3.2/dist/dce.js"></script>
+    <script src="overlay.js"></script>
+    <style>
+        #imageview {
+            position: relative;
+            width: 40vw;
+        }
+
+        #image {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain
+        }
+    </style>
 </head>
 
 <body>
@@ -18,6 +40,10 @@
     <div>
         <a id='result'></a>
     </div>
+    <div id="imageview">
+        <img id="image" />
+        <canvas id="overlay"></canvas>
+    </div>
     <div id="enhancerUIContainer" style="height: 100vh;"></div>
     <script>
         var enhancer = null;
@@ -29,6 +55,7 @@
         div.style.color = "white";
 
         Dynamsoft.DLR.LabelRecognizer.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==");
+        initOverlay(document.getElementById('overlay'));
         Dynamsoft.DLR.LabelRecognizer.createInstance({
             runtimeSettings: "passportMRZ"
         }).then(function (obj) {
@@ -84,7 +111,48 @@
             }
         });
 
+        document.getElementById("file").addEventListener("change", function () {
+            clearOverlay();
+            document.getElementById('imageview').hidden = false;
+            document.getElementById('enhancerUIContainer').hidden = true;
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('result').hidden = false;
+            let file = this.files[0];
+
+            var fr = new FileReader();
+            fr.onload = function () {
+                let image = document.getElementById('image');
+                image.src = fr.result;
+
+                const img = new Image()
+                img.onload = () => {
+                    updateOverlay(img.width, img.height);
+                    if (recognizer) {
+                        recognizer.recognize(file).then(function (results) {
+                            for (let result of results) {
+                                if (result.lineResults.length == 2) {
+                                    let lines = result.lineResults;
+                                    let line1 = lines[0].text;
+                                    let line2 = lines[1].text;
+                                    console.log(line1);
+                                    console.log(line2);
+                                    document.getElementById('result').innerHTML = extractMRZInfo(line1, line2);
+                                    drawOverlay(lines[0].location.points, line1);
+                                    drawOverlay(lines[1].location.points, line2);
+                                }
+                            }
+                        });
+                    }
+                }
+                img.src = fr.result
+
+
+            }
+            fr.readAsDataURL(file);
+        });
+
         document.getElementById("scanner-stop").onclick = function () {
+            document.getElementById('imageview').hidden = false;
             if (recognizer) {
                 document.getElementById('result').hidden = false;
                 document.getElementById('enhancerUIContainer').hidden = true;
@@ -95,6 +163,7 @@
         }
 
         document.getElementById("scanner-start").onclick = function () {
+            document.getElementById('imageview').hidden = true;
             if (recognizer) {
                 document.getElementById('result').hidden = true;
                 document.getElementById('enhancerUIContainer').hidden = false;
