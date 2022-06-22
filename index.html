@@ -4,7 +4,7 @@
 <head>
     <title>Hello MRZ Reader & Scanner</title>
     <script src="util.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.4/dist/dlr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.10/dist/dlr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dynamsoft-camera-enhancer@2.3.2/dist/dce.js"></script>
 </head>
 
@@ -82,9 +82,7 @@
         });
 
         document.getElementById("scanner").onclick = function () {
-            document.getElementById('enhancerUIContainer').hidden ^= true;
-
-            if (document.getElementById('enhancerUIContainer').hidden) {
+            if (!document.getElementById('enhancerUIContainer').hidden) {
                 document.getElementById('result').hidden = false;
                 (async () => {
                     await recognizer.stopScanning(true);
