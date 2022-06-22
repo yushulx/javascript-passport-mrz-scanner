@@ -11,7 +11,10 @@
 <body>
     <span id='loading-status' style='font-size:x-large'>Loading Library & Resources...</span>
     <br>
-    <input type="file" id="file" accept="image/*" /><button id="scanner">MRZ Scanner</button>
+    <input type="file" id="file" accept="image/*" title="file" />
+
+    <button id="scanner-start">MRZ Scanner Start</button>
+    <button id="scanner-stop">MRZ Scanner Stop</button>
     <div>
         <a id='result'></a>
     </div>
@@ -81,22 +84,24 @@
             }
         });
 
-        document.getElementById("scanner").onclick = function () {
-            if (!document.getElementById('enhancerUIContainer').hidden) {
+        document.getElementById("scanner-stop").onclick = function () {
+            if (recognizer) {
                 document.getElementById('result').hidden = false;
+                document.getElementById('enhancerUIContainer').hidden = true;
                 (async () => {
                     await recognizer.stopScanning(true);
-                    })();
-            } else {
-                document.getElementById('result').hidden = true;
-                if (!enhancer.isOpen()) {
-                    (async () => {
-                        await recognizer.startScanning(true);
-                    })();
-                }
-
+                })();
             }
+        }
 
+        document.getElementById("scanner-start").onclick = function () {
+            if (recognizer) {
+                document.getElementById('result').hidden = true;
+                document.getElementById('enhancerUIContainer').hidden = false;
+                (async () => {
+                    await recognizer.startScanning(true);
+                })();
+            }
         }
     </script>
 </body>
