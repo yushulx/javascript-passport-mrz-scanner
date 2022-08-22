@@ -4,7 +4,7 @@
 <head>
     <title>Hello MRZ Reader</title>
     <script src="util.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.10/dist/dlr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.11/dist/dlr.js"></script>
     <script src="overlay.js"></script>
     <style>
         #imageview {
@@ -45,7 +45,7 @@
         Dynamsoft.DLR.LabelRecognizer.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==");
         initOverlay(document.getElementById('overlay'));
         Dynamsoft.DLR.LabelRecognizer.createInstance({
-            runtimeSettings: "passportMRZ"
+            runtimeSettings: "MRZ"
         }).then(function (obj) {
             console.log("recognizer created");
             recognizer = obj;
