@@ -97,7 +97,7 @@
             recognizer = await Dynamsoft.DLR.LabelRecognizer.createInstance();
             await cameraEnhancer.setUIElement(document.getElementById('videoContainer'));
             await recognizer.setImageSource(cameraEnhancer, {resultsHighlightBaseShapes: Dynamsoft.DCE.DrawingItem});
-            await recognizer.updateRuntimeSettingsFromString("mrz");
+            await recognizer.updateRuntimeSettingsFromString("MRZ");
 
             let cameras = await cameraEnhancer.getAllCameras();
             listCameras(cameras);

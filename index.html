@@ -4,13 +4,32 @@
 <head>
     <title>Hello MRZ Reader & Scanner</title>
     <script src="util.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.10/dist/dlr.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-camera-enhancer@2.3.2/dist/dce.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-label-recognizer@2.2.11/dist/dlr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-camera-enhancer@3.0.1/dist/dce.js"></script>
     <script src="overlay.js"></script>
     <style>
+        /* body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        } */
+
         #imageview {
             position: relative;
             width: 40vw;
+        }
+
+        #videoview {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #videoContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 1
         }
 
         #image {
@@ -18,14 +37,32 @@
             width: 100%;
             height: 100%;
         }
-
-        #overlay {
+        
+        #imageOverlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             object-fit: contain
+        }
+
+        #videoOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            object-fit: contain
+        }
+
+        #results {
+            position: absolute;
+            top: 20%;
+            left: 20px;
+            color: red;
+            z-index: 1
         }
     </style>
 </head>
@@ -42,46 +79,82 @@
     </div>
     <div id="imageview">
         <img id="image" />
-        <canvas id="overlay"></canvas>
+        <canvas id="imageOverlay"></canvas>
     </div>
-    <div id="enhancerUIContainer" style="height: 100vh;"></div>
+
+    <div id="videoContainer" hidden="true">
+        <div class="select">
+            <label for="videoSource">Video source: </label>
+            <select id="videoSource"></select>
+        </div>
+
+        <div id="videoview">
+            <div class="dce-video-container" id="videoContainer"></div>
+            <canvas id="videoOverlay"></canvas>
+        </div>
+    
+        <div id="results"></div>
+    </div>
+    
     <script>
         var enhancer = null;
         var recognizer = null;
-        let div = document.createElement("div");
-        div.style.position = "absolute";
-        div.style.left = "20px";
-        div.style.top = "20%";
-        div.style.color = "white";
+        var videoContainer = document.getElementById('videoContainer');
+        var videoSelect = document.querySelector('select#videoSource');
+        var cameraInfo = {};
+        initOverlay(document.getElementById('imageOverlay'));
+
+        async function openCamera() {
+            clearOverlay();
+            let deviceId = videoSelect.value;
+            if (cameraEnhancer) {
+                await cameraEnhancer.selectCamera(cameraInfo[deviceId]);
+            }
+        }
+
+        videoSelect.onchange = openCamera;
+
+        let div = document.getElementById("results");
 
         Dynamsoft.DLR.LabelRecognizer.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==");
-        initOverlay(document.getElementById('overlay'));
-        Dynamsoft.DLR.LabelRecognizer.createInstance({
-            runtimeSettings: "passportMRZ"
-        }).then(function (obj) {
-            console.log("recognizer created");
-            recognizer = obj;
-        });
 
-        Dynamsoft.DLR.LabelRecognizer.onResourcesLoadStarted = (resourcesPath) => { console.log(resourcesPath + " is loading.") };
-        Dynamsoft.DLR.LabelRecognizer.onResourcesLoaded = (resourcesPath) => {
-            console.log(resourcesPath + " is loaded.")
-            document.getElementById('loading-status').hidden = true;
+        (async () => {
+            Dynamsoft.DLR.LabelRecognizer.onResourcesLoadStarted = (resourcePath) => {
+                console.log("Loading " + resourcePath);
+            };
+            Dynamsoft.DLR.LabelRecognizer.onResourcesLoaded = (resourcePath) => {
+                console.log("Finished loading " + resourcePath);
+                document.getElementById('loading-status').hidden = true;
+            };
 
-            (async () => {
-                enhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance();
-                recognizer.setImageSource(enhancer);
-                document.getElementById("enhancerUIContainer").appendChild(enhancer.getUIElement());
-                document.getElementById("enhancerUIContainer").appendChild(div);
-                recognizer.onImageRead = results => {
-                    lines = getResults(results);
-                    if (lines) div.innerHTML = extractMRZInfo(lines[0], lines[1]);
-                };
-                recognizer.onUniqueRead = (txt, results) => {
-                };
-                await recognizer.startScanning(true);
-            })();
-        };
+            cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance();
+            recognizer = await Dynamsoft.DLR.LabelRecognizer.createInstance();
+            await cameraEnhancer.setUIElement(document.getElementById('videoContainer'));
+            await recognizer.setImageSource(cameraEnhancer, {resultsHighlightBaseShapes: Dynamsoft.DCE.DrawingItem});
+            await recognizer.updateRuntimeSettingsFromString("MRZ");
+
+            let cameras = await cameraEnhancer.getAllCameras();
+            listCameras(cameras);
+            await openCamera();
+
+            recognizer.onImageRead = results => {
+                clearOverlay();
+                lines = getResults(results);
+                if (lines) div.innerHTML = extractMRZInfo(lines[0], lines[1]);
+                else div.innerHTML = "";
+                
+                for (let result of results) {
+                    for (let lineResult of result.lineResults) {
+                        // drawOverlay(lineResult.location.points, lineResult.text);
+                        drawOverlay(lineResult.location.points, "");
+                    }
+                }
+            };
+            cameraEnhancer.on("played", playCallBackInfo => {
+                updateResolution();
+            });
+            // await recognizer.startScanning(true);
+        })();
 
         function getResults(results) {
             for (let result of results) {
@@ -99,7 +172,7 @@
         }
 
         document.getElementById("file").addEventListener("change", function () {
-            document.getElementById('enhancerUIContainer').hidden = true;
+            videoContainer.hidden = true;
             document.getElementById('result').innerHTML = '';
             document.getElementById('result').hidden = false;
             let file = this.files[0];
@@ -114,7 +187,7 @@
         document.getElementById("file").addEventListener("change", function () {
             clearOverlay();
             document.getElementById('imageview').hidden = false;
-            document.getElementById('enhancerUIContainer').hidden = true;
+            videoContainer.hidden = true;
             document.getElementById('result').innerHTML = '';
             document.getElementById('result').hidden = false;
             let file = this.files[0];
@@ -152,10 +225,11 @@
         });
 
         document.getElementById("scanner-stop").onclick = function () {
+            initOverlay(document.getElementById('imageOverlay'));
             document.getElementById('imageview').hidden = false;
             if (recognizer) {
                 document.getElementById('result').hidden = false;
-                document.getElementById('enhancerUIContainer').hidden = true;
+                videoContainer.hidden = true;
                 (async () => {
                     await recognizer.stopScanning(true);
                 })();
@@ -163,13 +237,32 @@
         }
 
         document.getElementById("scanner-start").onclick = function () {
+            initOverlay(document.getElementById('videoOverlay'));
             document.getElementById('imageview').hidden = true;
             if (recognizer) {
                 document.getElementById('result').hidden = true;
-                document.getElementById('enhancerUIContainer').hidden = false;
+                videoContainer.hidden = false;
                 (async () => {
                     await recognizer.startScanning(true);
                 })();
+            }
+        }
+
+        function updateResolution() {
+            if (cameraEnhancer) {
+                let resolution = cameraEnhancer.getResolution();
+                updateOverlay(resolution[0], resolution[1]);
+            }
+        }
+
+        function listCameras(deviceInfos) {
+            for (var i = 0; i < deviceInfos.length; ++i) {
+                var deviceInfo = deviceInfos[i];
+                var option = document.createElement('option');
+                option.value = deviceInfo.deviceId;
+                option.text = deviceInfo.label;
+                cameraInfo[deviceInfo.deviceId] = deviceInfo;
+                videoSelect.appendChild(option);
             }
         }
     </script>
